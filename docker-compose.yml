@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: whatsup
       POSTGRES_PASSWORD: whatsup
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
@@ -113,7 +113,7 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
     ports:
-      - "8080:8080"
+      - "8090:8080"
     networks:
       - whatsup
 
@@ -150,16 +150,19 @@ services:
         SERVICE_PATH: services/auth-service
     container_name: whatsup-auth-service
     environment:
-      PORT: 3001
+      PORT: 4001
       DATABASE_URL: postgres://whatsup:whatsup@postgres:5432/whatsup
+      REDIS_URL: redis://redis:6379
       JWT_SECRET: local-dev-secret
       JWT_EXPIRES_IN: 1h
       OTP_PEPPER: local-dev-otp-pepper
       OTP_TTL_MINUTES: 5
+      OTP_RATE_LIMIT_MAX_REQUESTS: 3
+      OTP_RATE_LIMIT_WINDOW_SECONDS: 3600
       DEFAULT_USER_ROLE: user
       RUN_MIGRATIONS: "true"
     ports:
-      - "3001:3001"
+      - "4001:4001"
     volumes:
       - ./services/auth-service:/app/service
       - auth_node_modules:/app/service/node_modules

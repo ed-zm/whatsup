@@ -1,16 +1,16 @@
 import type { NextFunction, Request, Response } from 'express';
-import type { SendSmsUseCase } from '../../../application/use-cases/send-sms.use-case';
-import type { VerifySmsUseCase } from '../../../application/use-cases/verify-sms.use-case';
+import type { RequestSmsCodeUseCase } from '../../../application/use-cases/request-sms-code.use-case';
+import type { VerifySmsCodeUseCase } from '../../../application/use-cases/verify-sms-code.use-case';
 
 export class AuthController {
   constructor(
-    private readonly sendSmsUseCase: SendSmsUseCase,
-    private readonly verifySmsUseCase: VerifySmsUseCase,
+    private readonly requestSmsCodeUseCase: RequestSmsCodeUseCase,
+    private readonly verifySmsCodeUseCase: VerifySmsCodeUseCase,
   ) {}
 
   sendSms = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
     try {
-      const result = await this.sendSmsUseCase.execute({
+      const result = await this.requestSmsCodeUseCase.execute({
         phoneNumber: String(request.body?.phoneNumber ?? ''),
       });
 
@@ -22,7 +22,7 @@ export class AuthController {
 
   verifySms = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
     try {
-      const result = await this.verifySmsUseCase.execute({
+      const result = await this.verifySmsCodeUseCase.execute({
         phoneNumber: String(request.body?.phoneNumber ?? ''),
         otpCode: String(request.body?.otpCode ?? ''),
       });

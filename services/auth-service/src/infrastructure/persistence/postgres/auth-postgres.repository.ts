@@ -1,5 +1,4 @@
 import type { Pool, PoolClient } from 'pg';
-import type { OtpPurpose, OtpVerification } from '../../../domain/entities/otp-verification';
 import type { User } from '../../../domain/entities/user';
 import type {
   AuthRepository,
@@ -19,106 +18,11 @@ interface UserRow {
   updated_at: Date;
 }
 
-interface OtpRow {
-  id: string;
-  phone_number: string;
-  otp_hash: string;
-  purpose: OtpPurpose;
-  status: OtpVerification['status'];
-  attempts_count: number;
-  max_attempts: number;
-  sent_at: Date;
-  expires_at: Date;
-  verified_at: Date | null;
-}
-
 export class AuthPostgresRepository implements AuthRepository {
   constructor(
     private readonly pool: Pool,
     private readonly defaultUserRole: string,
   ) {}
-
-  async createOtpVerification(input: {
-    phoneNumber: string;
-    otpHash: string;
-    purpose: OtpPurpose;
-    expiresAt: Date;
-  }): Promise<OtpVerification> {
-    const result = await this.pool.query<OtpRow>(
-      `
-        INSERT INTO otp_verifications (phone_number, otp_hash, purpose, expires_at)
-        VALUES ($1, $2, $3, $4)
-        RETURNING id, phone_number, otp_hash, purpose, status, attempts_count, max_attempts,
-                  sent_at, expires_at, verified_at
-      `,
-      [input.phoneNumber, input.otpHash, input.purpose, input.expiresAt],
-    );
-
-    return mapOtpRow(result.rows[0]);
-  }
-
-  async findLatestPendingOtp(
-    phoneNumber: string,
-    purpose: OtpPurpose,
-  ): Promise<OtpVerification | null> {
-    const result = await this.pool.query<OtpRow>(
-      `
-        SELECT id, phone_number, otp_hash, purpose, status, attempts_count, max_attempts,
-               sent_at, expires_at, verified_at
-        FROM otp_verifications
-        WHERE phone_number = $1
-          AND purpose = $2
-          AND status = 'pending'
-        ORDER BY sent_at DESC
-        LIMIT 1
-      `,
-      [phoneNumber, purpose],
-    );
-
-    return result.rows[0] ? mapOtpRow(result.rows[0]) : null;
-  }
-
-  async incrementOtpAttempts(otpId: string): Promise<void> {
-    await this.pool.query(
-      `
-        UPDATE otp_verifications
-        SET attempts_count = attempts_count + 1,
-            status = CASE
-              WHEN attempts_count + 1 >= max_attempts THEN 'blocked'
-              ELSE status
-            END,
-            updated_at = now()
-        WHERE id = $1
-      `,
-      [otpId],
-    );
-  }
-
-  async markOtpVerified(otpId: string): Promise<void> {
-    await this.pool.query(
-      `
-        UPDATE otp_verifications
-        SET status = 'verified',
-            verified_at = now(),
-            updated_at = now()
-        WHERE id = $1
-      `,
-      [otpId],
-    );
-  }
-
-  async markOtpExpired(otpId: string): Promise<void> {
-    await this.pool.query(
-      `
-        UPDATE otp_verifications
-        SET status = 'expired',
-            updated_at = now()
-        WHERE id = $1
-          AND status = 'pending'
-      `,
-      [otpId],
-    );
-  }
 
   async findUserByPhoneNumber(phoneNumber: string): Promise<User | null> {
     const result = await this.pool.query<UserRow>(
@@ -263,17 +167,3 @@ function mapUserRow(row: UserRow): User {
   };
 }
 
-function mapOtpRow(row: OtpRow): OtpVerification {
-  return {
-    id: row.id,
-    phoneNumber: row.phone_number,
-    otpHash: row.otp_hash,
-    purpose: row.purpose,
-    status: row.status,
-    attemptsCount: row.attempts_count,
-    maxAttempts: row.max_attempts,
-    sentAt: row.sent_at,
-    expiresAt: row.expires_at,
-    verifiedAt: row.verified_at,
-  };
-}

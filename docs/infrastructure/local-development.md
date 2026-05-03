@@ -6,7 +6,7 @@
 docker compose up --build
 ```
 
-Kafka UI is available at http://localhost:8080.
+Kafka UI is available at http://localhost:8090.
 
 Provision LocalStack resources with Terraform after LocalStack is healthy:
 

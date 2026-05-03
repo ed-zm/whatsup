@@ -13,6 +13,6 @@ RUN npm ci
 
 COPY ${SERVICE_PATH}/ ./
 
-EXPOSE 3001 3002 3003
+EXPOSE 4001 3002 3003
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

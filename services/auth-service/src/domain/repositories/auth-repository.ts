@@ -1,4 +1,3 @@
-import type { OtpPurpose, OtpVerification } from '../entities/otp-verification';
 import type { User } from '../entities/user';
 
 export interface UserWithRolesAndPermissions {
@@ -8,21 +7,6 @@ export interface UserWithRolesAndPermissions {
 }
 
 export interface AuthRepository {
-  createOtpVerification(input: {
-    phoneNumber: string;
-    otpHash: string;
-    purpose: OtpPurpose;
-    expiresAt: Date;
-  }): Promise<OtpVerification>;
-
-  findLatestPendingOtp(phoneNumber: string, purpose: OtpPurpose): Promise<OtpVerification | null>;
-
-  incrementOtpAttempts(otpId: string): Promise<void>;
-
-  markOtpVerified(otpId: string): Promise<void>;
-
-  markOtpExpired(otpId: string): Promise<void>;
-
   findUserByPhoneNumber(phoneNumber: string): Promise<User | null>;
 
   findOrCreateVerifiedUser(phoneNumber: string): Promise<User>;

@@ -1,0 +1,40 @@
+# Optional Docker Hardened Images overlay.
+#
+# Usage:
+#   docker login dhi.io
+#   docker compose -f docker-compose.yml -f docker-compose.hardened.yml up --build
+#
+# Cassandra remains on the Docker Official Image because the DHI catalog does
+# not currently provide a direct single-node Cassandra replacement.
+services:
+  postgres:
+    image: dhi.io/postgres:16-alpine3.22
+
+  redis:
+    image: dhi.io/redis:8-debian13-dev
+
+  kafka:
+    image: dhi.io/kafka:4.2-dev
+
+  localstack:
+    image: dhi.io/localstack:4.14-dev
+
+  auth-service:
+    build:
+      args:
+        NODE_IMAGE: dhi.io/node:22-alpine3.22-dev
+
+  media-service:
+    build:
+      args:
+        NODE_IMAGE: dhi.io/node:22-alpine3.22-dev
+
+  realtime-gateway:
+    build:
+      args:
+        NODE_IMAGE: dhi.io/node:22-alpine3.22-dev
+
+  messaging-service:
+    build:
+      args:
+        NODE_IMAGE: dhi.io/node:22-alpine3.22-dev
